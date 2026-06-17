@@ -1,287 +1,244 @@
 import { useRef, useCallback, useEffect, useState } from "react"
 import { clearCampusJoystickInput, setCampusJoystickInput } from "./campusJoystickInput"
-import { isCampusCameraBlockedTarget } from "./campusTouchTargets"
 
-const STICK_RADIUS = 48
+const STICK_RADIUS = 42
 const DEAD_ZONE = 0.12
-const BASE_SIZE = 120
-/** 内圈半径 = 摇杆控制；外环（内圈~底座边缘）= 拖动底座位置 */
-const KNOB_ZONE_RADIUS = 36
 
 interface MobileJoystickProps {
   visible: boolean
 }
 
-type DragMode = "none" | "joystick" | "reposition"
-
 export function MobileJoystick({ visible }: MobileJoystickProps) {
-  const modeRef = useRef<DragMode>("none")
-  const pointerIdRef = useRef<number | null>(null)
-  const touchIdRef = useRef<number | null>(null)
-  /** ref 避免拖拽底座时 useEffect 重新注册 */
-  const basePosRef = useRef({ x: 28, y: 0 })
-  const [basePos, setBasePos] = useState({ x: 28, y: 0 })
-  const [knobOffset, setKnobOffset] = useState({ x: 0, y: 0 })
-  const [baseInit, setBaseInit] = useState(false)
-
-  // 首次初始化底座位置
-  useEffect(() => {
-    if (!baseInit && typeof window !== "undefined") {
-      const p = { x: 28, y: window.innerHeight - 192 }
-      basePosRef.current = p
-      setBasePos(p)
-      setBaseInit(true)
-    }
-  }, [baseInit])
+  const containerRef = useRef<HTMLDivElement>(null)
+  const knobRef = useRef<HTMLDivElement>(null)
+  const activeRef = useRef(false)
+  const centerRef = useRef({ x: 0, y: 0 })
+  const [position, setPosition] = useState({ bottom: 48, left: 24 })
+  const dragRef = useRef<{
+    pointerId: number
+    startX: number
+    startY: number
+    baseBottom: number
+    baseLeft: number
+  } | null>(null)
 
   useEffect(() => {
     if (!visible) clearCampusJoystickInput()
     return () => clearCampusJoystickInput()
   }, [visible])
 
-  const applyVec = useCallback((dx: number, dy: number) => {
+  const applyVec = useCallback((clientX: number, clientY: number) => {
+    const dx = clientX - centerRef.current.x
+    const dy = clientY - centerRef.current.y
     const dist = Math.min(Math.hypot(dx, dy), STICK_RADIUS)
     const angle = Math.atan2(dy, dx)
     let x = (Math.cos(angle) * dist) / STICK_RADIUS
     let z = (Math.sin(angle) * dist) / STICK_RADIUS
-    if (Math.hypot(x, z) < DEAD_ZONE) { x = 0; z = 0 }
+    if (Math.hypot(x, z) < DEAD_ZONE) {
+      x = 0
+      z = 0
+    }
+    if (knobRef.current) {
+      knobRef.current.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px)`
+    }
     setCampusJoystickInput(x, z)
   }, [])
 
-  const reset = useCallback(() => {
-    modeRef.current = "none"
-    pointerIdRef.current = null
-    touchIdRef.current = null
-    setKnobOffset({ x: 0, y: 0 })
+  const resetKnob = useCallback(() => {
+    activeRef.current = false
+    if (knobRef.current) knobRef.current.style.transform = "translate(0px, 0px)"
     clearCampusJoystickInput()
   }, [])
 
-  useEffect(() => {
-    if (!visible) return
+  const handleStickStart = useCallback(
+    (clientX: number, clientY: number) => {
+      const rect = containerRef.current?.getBoundingClientRect()
+      if (!rect) return
+      centerRef.current = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      }
+      activeRef.current = true
+      applyVec(clientX, clientY)
+    },
+    [applyVec],
+  )
 
-    const isLeftHalf = (clientX: number) => clientX <= window.innerWidth * 0.5
-    const centerX = () => basePosRef.current.x + BASE_SIZE / 2
-    const centerY = () => basePosRef.current.y + BASE_SIZE / 2
-    const distFromCenter = (cx: number, cy: number) => Math.hypot(cx - centerX(), cy - centerY())
+  const handleStickMove = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!activeRef.current) return
+      applyVec(clientX, clientY)
+    },
+    [applyVec],
+  )
 
-    const dispatchClick = (clientX: number, clientY: number) => {
-      const target = document.elementFromPoint(clientX, clientY)
-      if (!target) return
-      const init: PointerEventInit = { bubbles: true, cancelable: true, clientX, clientY, pointerId: -1, pointerType: "touch", isPrimary: false }
-      target.dispatchEvent(new PointerEvent("pointerdown", init))
-      target.dispatchEvent(new PointerEvent("pointerup", init))
-      target.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, clientX, clientY }))
-    }
+  const handleDragMove = useCallback((clientX: number, clientY: number) => {
+    const drag = dragRef.current
+    if (!drag) return
+    const dx = clientX - drag.startX
+    const dy = clientY - drag.startY
+    setPosition({
+      left: Math.max(8, Math.min(window.innerWidth - 116, drag.baseLeft + dx)),
+      bottom: Math.max(16, Math.min(window.innerHeight - 132, drag.baseBottom - dy)),
+    })
+  }, [])
 
-    const onPointerDown = (e: PointerEvent) => {
-      if (e.pointerId === -1) return
-      if (isCampusCameraBlockedTarget(e.target)) return
-      if (!isLeftHalf(e.clientX)) return
-
-      const d = distFromCenter(e.clientX, e.clientY)
-
-      // 触摸在底座外 → 放行
-      if (d > BASE_SIZE / 2) return
-
-      e.stopImmediatePropagation()
+  const onTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      e.stopPropagation()
+      const touch = e.touches[0]
+      if ((e.target as HTMLElement).dataset.joystickDrag === "handle") {
+        dragRef.current = {
+          pointerId: touch.identifier,
+          startX: touch.clientX,
+          startY: touch.clientY,
+          baseBottom: position.bottom,
+          baseLeft: position.left,
+        }
+        return
+      }
       e.preventDefault()
-      pointerIdRef.current = e.pointerId
-      touchIdRef.current = null
+      handleStickStart(touch.clientX, touch.clientY)
+    },
+    [handleStickStart, position.bottom, position.left],
+  )
 
-      if (d > KNOB_ZONE_RADIUS) {
-        // 外环 → 拖动底座
-        modeRef.current = "reposition"
+  const onTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      e.stopPropagation()
+      const touch = e.touches[0]
+      if (dragRef.current?.pointerId === touch.identifier) {
+        handleDragMove(touch.clientX, touch.clientY)
         return
       }
-      // 内圈 → 摇杆
-      modeRef.current = "joystick"
-    }
-
-    const onPointerMove = (e: PointerEvent) => {
-      if (e.pointerId === -1) return
-      if (pointerIdRef.current !== e.pointerId) return
-      e.stopImmediatePropagation()
+      if (!activeRef.current) return
       e.preventDefault()
+      handleStickMove(touch.clientX, touch.clientY)
+    },
+    [handleDragMove, handleStickMove],
+  )
 
-      if (modeRef.current === "reposition") {
-        const nx = e.clientX - BASE_SIZE / 2
-        const ny = e.clientY - BASE_SIZE / 2
-        basePosRef.current = { x: nx, y: ny }
-        setBasePos({ x: nx, y: ny })
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.stopPropagation()
+    dragRef.current = null
+    resetKnob()
+  }, [resetKnob])
+
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.stopPropagation()
+      if ((e.target as HTMLElement).dataset.joystickDrag === "handle") {
+        dragRef.current = {
+          pointerId: e.pointerId,
+          startX: e.clientX,
+          startY: e.clientY,
+          baseBottom: position.bottom,
+          baseLeft: position.left,
+        }
+        e.currentTarget.setPointerCapture(e.pointerId)
         return
       }
+      e.preventDefault()
+      e.currentTarget.setPointerCapture(e.pointerId)
+      handleStickStart(e.clientX, e.clientY)
+    },
+    [handleStickStart, position.bottom, position.left],
+  )
 
-      if (modeRef.current === "joystick") {
-        const dx = e.clientX - centerX()
-        const dy = e.clientY - centerY()
-        const dist = Math.min(Math.hypot(dx, dy), STICK_RADIUS)
-        const angle = Math.atan2(dy, dx)
-        setKnobOffset({
-          x: Math.cos(angle) * dist,
-          y: Math.sin(angle) * dist,
-        })
-        applyVec(dx, dy)
-      }
-    }
-
-    const onPointerUp = (e: PointerEvent) => {
-      if (e.pointerId === -1) return
-      if (pointerIdRef.current !== e.pointerId) return
-      e.stopImmediatePropagation()
-      reset()
-    }
-
-    const onPointerCancel = (e: PointerEvent) => {
-      if (pointerIdRef.current !== e.pointerId) return
-      reset()
-    }
-
-    // ─── touch 事件（移动端必须也拦截，否则漏给相机轨道）───
-
-    const onTouchStart = (e: TouchEvent) => {
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        const t = e.changedTouches[i]
-        if (isCampusCameraBlockedTarget(t.target as Element)) continue
-        if (!isLeftHalf(t.clientX)) continue
-        const d = distFromCenter(t.clientX, t.clientY)
-        if (d > BASE_SIZE / 2) continue
-
-        e.stopImmediatePropagation()
-        e.preventDefault()
-        touchIdRef.current = t.identifier
-        pointerIdRef.current = null
-
-        if (d > KNOB_ZONE_RADIUS) {
-          modeRef.current = "reposition"
-        } else {
-          modeRef.current = "joystick"
-        }
+  const onPointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      e.stopPropagation()
+      if (dragRef.current?.pointerId === e.pointerId) {
+        handleDragMove(e.clientX, e.clientY)
         return
       }
-    }
+      if (!activeRef.current) return
+      handleStickMove(e.clientX, e.clientY)
+    },
+    [handleDragMove, handleStickMove],
+  )
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (touchIdRef.current == null) return
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        const t = e.changedTouches[i]
-        if (t.identifier !== touchIdRef.current) continue
-        e.stopImmediatePropagation()
-        e.preventDefault()
-
-        if (modeRef.current === "reposition") {
-          const nx = t.clientX - BASE_SIZE / 2
-          const ny = t.clientY - BASE_SIZE / 2
-          basePosRef.current = { x: nx, y: ny }
-          setBasePos({ x: nx, y: ny })
-          return
-        }
-
-        if (modeRef.current === "joystick") {
-          const dx = t.clientX - centerX()
-          const dy = t.clientY - centerY()
-          const dist = Math.min(Math.hypot(dx, dy), STICK_RADIUS)
-          const angle = Math.atan2(dy, dx)
-          setKnobOffset({
-            x: Math.cos(angle) * dist,
-            y: Math.sin(angle) * dist,
-          })
-          applyVec(dx, dy)
-        }
-        return
+  const onPointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      e.stopPropagation()
+      dragRef.current = null
+      resetKnob()
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId)
+      } catch {
+        /* ignore */
       }
-    }
-
-    const onTouchEnd = (e: TouchEvent) => {
-      if (touchIdRef.current == null) return
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === touchIdRef.current) {
-          e.stopImmediatePropagation()
-          reset()
-          return
-        }
-      }
-    }
-
-    const onTouchCancel = (e: TouchEvent) => {
-      if (touchIdRef.current == null) return
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === touchIdRef.current) {
-          reset()
-          return
-        }
-      }
-    }
-
-    window.addEventListener("pointerdown", onPointerDown, true)
-    window.addEventListener("pointermove", onPointerMove, true)
-    window.addEventListener("pointerup", onPointerUp, true)
-    window.addEventListener("pointercancel", onPointerCancel, true)
-    window.addEventListener("touchstart", onTouchStart, true)
-    window.addEventListener("touchmove", onTouchMove, true)
-    window.addEventListener("touchend", onTouchEnd, true)
-    window.addEventListener("touchcancel", onTouchCancel, true)
-
-    return () => {
-      window.removeEventListener("pointerdown", onPointerDown, true)
-      window.removeEventListener("pointermove", onPointerMove, true)
-      window.removeEventListener("pointerup", onPointerUp, true)
-      window.removeEventListener("pointercancel", onPointerCancel, true)
-      window.removeEventListener("touchstart", onTouchStart, true)
-      window.removeEventListener("touchmove", onTouchMove, true)
-      window.removeEventListener("touchend", onTouchEnd, true)
-      window.removeEventListener("touchcancel", onTouchCancel, true)
-      reset()
-    }
-  }, [visible, applyVec, reset])
+    },
+    [resetKnob],
+  )
 
   if (!visible) return null
-
-  const active = modeRef.current !== "none"
 
   return (
     <div
       data-campus-joystick
       style={{
         position: "fixed",
-        left: basePos.x,
-        top: basePos.y,
-        width: BASE_SIZE,
-        height: BASE_SIZE,
-        borderRadius: "50%",
-        background: "rgba(255,255,255,0.12)",
-        border: "2px solid rgba(255,255,255,0.22)",
+        bottom: position.bottom,
+        left: position.left,
         zIndex: 15,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        pointerEvents: "none",
+        pointerEvents: "auto",
         touchAction: "none",
       }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
     >
-      {/* 外环虚线提示：拖拽此处移动底座 */}
       <div
+        data-joystick-drag="handle"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
         style={{
-          position: "absolute",
-          inset: 4,
-          borderRadius: "50%",
-          border: "1px dashed rgba(255,255,255,0.20)",
-          pointerEvents: "none",
+          width: 28,
+          height: 20,
+          margin: "0 auto 4px",
+          borderRadius: 6,
+          background: "rgba(0,0,0,0.35)",
+          color: "rgba(255,255,255,0.85)",
+          fontSize: 10,
+          lineHeight: "20px",
+          textAlign: "center",
+          userSelect: "none",
         }}
-      />
-      {/* 摇杆手柄 */}
+      >
+        ⋮⋮
+      </div>
       <div
+        ref={containerRef}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={onTouchEnd}
         style={{
-          width: 48,
-          height: 48,
+          width: 104,
+          height: 104,
           borderRadius: "50%",
-          background: active
-            ? "rgba(255,255,255,0.50)"
-            : "rgba(255,255,255,0.26)",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.22)",
-          transform: `translate(${knobOffset.x}px, ${knobOffset.y}px)`,
-          transition: active ? "none" : "transform 0.18s ease-out",
+          background: "rgba(255,255,255,0.16)",
+          border: "2px solid rgba(255,255,255,0.28)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
-      />
+      >
+        <div
+          ref={knobRef}
+          style={{
+            width: 46,
+            height: 46,
+            borderRadius: "50%",
+            background: "rgba(255,255,255,0.42)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+            transition: "transform 0.04s linear",
+          }}
+        />
+      </div>
     </div>
   )
 }

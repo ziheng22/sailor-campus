@@ -5,7 +5,7 @@ import { KeyboardControls } from "@react-three/drei"
 import * as THREE from "three"
 import { GlbCampus } from "./GlbCampus"
 import { CharacterController } from "../character/CharacterController"
-import { type BuildingData } from "../data/campusData"
+import { type BuildingData, buildings as campusBuildings } from "../data/campusData"
 import { type CampusCollisionData, type CampusWalkSurface } from "./campusColliders"
 import { getHumanHeight } from "./glbBuildingScale"
 import {
@@ -32,7 +32,10 @@ import type { RoadDef } from "../debug/campusRoadTypes"
 import { RoadEditor } from "../debug/RoadEditor"
 import { RoadSurfaceLayer } from "../debug/RoadSurfaceLayer"
 import type { NavigateTarget } from "../navigate/NavigateTarget"
+import { setBuildingPosition, clearBuildingPositions } from "../navigate/NavigateTarget"
 import { NavigateGuide } from "./NavigateGuide"
+import { GLB_MESH_META } from "../data/glbBuildingMeta"
+import { playerWorldPos } from "../ui/playerPosition"
 
 const keyboardMap = [
   { name: "forward", keys: ["KeyW", "ArrowUp"] },
@@ -116,7 +119,23 @@ function SceneContent({
   const glbRootRef = useRef<THREE.Group>(null)
   const playerRef = useRef<THREE.Group>(null)
 
+  // 调试：在浏览器控制台输入 __pos() 打印玩家当前位置
+  if (typeof window !== "undefined") {
+    ;(window as any).__pos = () => {
+      if (playerRef.current) {
+        const p = playerRef.current.position
+        console.log(`Player position: (${p.x.toFixed(2)}, ${p.z.toFixed(2)})`)
+        return `(${p.x.toFixed(2)}, ${p.z.toFixed(2)})`
+      }
+      return "player not ready"
+    }
+  }
+
   useFrame(() => {
+    if (playerRef.current) {
+      playerWorldPos.x = playerRef.current.position.x
+      playerWorldPos.z = playerRef.current.position.z
+    }
     if (!newColliderCenterRef || !playerRef.current) return
     newColliderCenterRef.current.x = playerRef.current.position.x
     newColliderCenterRef.current.z = playerRef.current.position.z
@@ -150,11 +169,65 @@ function SceneContent({
       onAirWallReport?.(report)
       if (colliderDebug && !colliderEditMode) logAirWallReport(report)
     }
+
   }, [workingCollision, colliderDebug, colliderEditMode, onAirWallReport])
 
   useEffect(() => {
     if (workingCollision?.entries) onEditorEntriesChange?.(workingCollision.entries)
   }, [workingCollision?.entries, onEditorEntriesChange])
+
+  // GLB 内部宿舍编号 → campusData dorm ID（GLB 模型编号 ≠ 实际楼号）
+  // 空间规律：4列×~5排，每列北→南连续编号
+  // 列C(x~-36):1-5  列B(x~-16):6-10  列A(x~1):11-15  列D(x~-53):16-17
+  const GLB_DORM_TO_CAMPUS: Record<number, string> = {
+    1: "dorm-12", 2: "dorm-11", 3: "dorm-13", 4: "dorm-14", 5: "dorm-15",
+    6: "dorm-10", 7: "dorm-09", 8: "dorm-08", 9: "dorm-07", 10: "dorm-06",
+    11: "dorm-01", 12: "dorm-02", 13: "dorm-03", 14: "dorm-04", 15: "dorm-05",
+    16: "dorm-17", 17: "dorm-16",
+  }
+
+  // 将 GLB 碰撞条目中的实际世界坐标同步到导航搜索系统
+  useEffect(() => {
+    if (!workingCollision?.entries || workingCollision.entries.length === 0) return
+    clearBuildingPositions()
+
+    // 分离三类条目：GLB 宿舍 → 网格建筑（meta） → 未匹配
+    const dormEntries: { num: number; center: { x: number; z: number } }[] = []
+    const metaEntries = new Map<string, { x: number; z: number }>()
+    const unmatchedEntries: string[] = []
+
+    for (const entry of workingCollision.entries) {
+      const dormMatch = entry.name.match(/^宿舍#(\d+)$/)
+      if (dormMatch) {
+        const num = Number.parseInt(dormMatch[1], 10)
+        dormEntries.push({ num, center: entry.center })
+        const campusId = GLB_DORM_TO_CAMPUS[num]
+        if (campusId) {
+          setBuildingPosition(campusId, entry.center)
+        }
+        continue
+      }
+      const meta = GLB_MESH_META[entry.name]
+      if (meta?.id) {
+        metaEntries.set(meta.id, entry.center)
+        setBuildingPosition(meta.id, entry.center)
+      } else {
+        unmatchedEntries.push(entry.name)
+      }
+    }
+
+    console.log(
+      "[CampusScene] synced:",
+      campusBuildings.filter((b) => b.id.startsWith("dorm-")).length, "dorms,",
+      metaEntries.size, "named,",
+      dormEntries.length, "GLB,",
+      unmatchedEntries.length > 0 ? `${unmatchedEntries.length} unmatched` : "",
+    )
+
+    return () => {
+      clearBuildingPositions()
+    }
+  }, [workingCollision?.entries])
 
   const handlePolygonChange = useCallback(
     (id: string, polygon: PolygonPoint[]) => {
@@ -263,6 +336,8 @@ function SceneContent({
       {colliderDebug && !colliderEditMode && airWallReport && (
         <CampusColliderDebugView report={airWallReport} groundY={groundSurfaceY} />
       )}
+
+      {/* 区域调试视图 */}
 
       {/* Road surfaces (always visible when roads exist) */}
       {roadDefs && roadDefs.length > 0 && (

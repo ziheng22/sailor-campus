@@ -136,8 +136,12 @@ export const CharacterController = forwardRef<THREE.Group, CharacterControllerPr
       const player = groupRef.current
       if (!player) return
 
+      // 输入框聚焦时不处理 WASD，避免打字时角色移动
+      const activeTag = (document.activeElement?.tagName ?? "").toLowerCase()
+      const isInputFocused = activeTag === "input" || activeTag === "textarea" || activeTag === "select"
+
       const keys = getKeys() as Record<string, boolean>
-      if (movementEnabled) {
+      if (movementEnabled && !isInputFocused) {
         let turnDir = 0
         if (keys.left) turnDir += 1
         if (keys.right) turnDir -= 1

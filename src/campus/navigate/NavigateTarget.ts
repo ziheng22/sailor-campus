@@ -7,6 +7,21 @@ export interface NavigateTarget {
   groundY?: number
 }
 
+/** GLB 模型实际世界坐标覆盖（由碰撞数据填充） */
+const buildingPositionMap = new Map<string, { x: number; z: number }>()
+
+export function setBuildingPosition(id: string, pos: { x: number; z: number }): void {
+  buildingPositionMap.set(id, pos)
+}
+
+export function getBuildingPosition(id: string): { x: number; z: number } | undefined {
+  return buildingPositionMap.get(id)
+}
+
+export function clearBuildingPositions(): void {
+  buildingPositionMap.clear()
+}
+
 /** 从 buildings + landmarks 构建可搜索列表 */
 import { buildings, landmarks } from "../data/campusData"
 
@@ -20,18 +35,20 @@ export function getSearchItems(): SearchItem[] {
   const items: SearchItem[] = []
 
   for (const b of buildings) {
+    const pos = buildingPositionMap.get(b.id)
     items.push({
       label: b.name,
       subtitle: b.tags?.join(" · ") ?? "建筑",
-      target: { name: b.name, x: b.x, z: b.z },
+      target: { name: b.name, x: pos?.x ?? b.x, z: pos?.z ?? b.z },
     })
   }
 
   for (const l of landmarks) {
+    const pos = buildingPositionMap.get(l.id)
     items.push({
       label: l.name,
       subtitle: l.type ?? "地标",
-      target: { name: l.name, x: l.x, z: l.z },
+      target: { name: l.name, x: pos?.x ?? l.x, z: pos?.z ?? l.z },
     })
   }
 

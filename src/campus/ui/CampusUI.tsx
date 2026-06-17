@@ -2,6 +2,8 @@ import { type BuildingData } from "../data/campusData"
 import { type NavigateTarget } from "../navigate/NavigateTarget"
 import { BuildingInfoPanel } from "./BuildingInfoPanel"
 import { NavigateInput } from "./NavigateInput"
+import { AreaHUD } from "./AreaHUD"
+import { CampusHints } from "./CampusHints"
 import { useState, useEffect } from "react"
 import { MobileJoystick } from "./MobileJoystick"
 import { TouchCameraPad } from "./TouchCameraPad"
@@ -81,6 +83,12 @@ export function CampusUI(props: CampusUIProps) {
 
   return (
     <>
+      {/* 区域感应 HUD */}
+      <AreaHUD />
+
+      {/* 首次进入提示 */}
+      <CampusHints />
+
       {/* Top bar */}
       {isTouchDevice && <TouchCameraPad />}
 

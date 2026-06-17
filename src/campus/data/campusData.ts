@@ -159,36 +159,157 @@ export const buildings: BuildingData[] = [
 
   // ==========================================
   // 宿舍区 — 1-17号楼（校园北侧中部，大规模宿舍集群）
-  // 拆分为 4列×5排 矩阵，覆盖范围约 x∈[-50,60], z∈[-110,-40]
+  // 坐标来源：GLB 3D 模型碰撞体实际位置
   // ==========================================
-  ...([
-    { id: "dorm-01", col: 0, row: 0, name: "1号楼" },
-    { id: "dorm-02", col: 0, row: 1, name: "2号楼" },
-    { id: "dorm-03", col: 0, row: 2, name: "3号楼" },
-    { id: "dorm-04", col: 1, row: 0, name: "4号楼" },
-    { id: "dorm-05", col: 1, row: 1, name: "5号楼" },
-    { id: "dorm-06", col: 1, row: 2, name: "6号楼" },
-    { id: "dorm-07", col: 1, row: 3, name: "7号楼" },
-    { id: "dorm-08", col: 1, row: 4, name: "8号楼" },
-    { id: "dorm-09", col: 2, row: 0, name: "9号楼" },
-    { id: "dorm-10", col: 2, row: 1, name: "10号楼" },
-    { id: "dorm-11", col: 2, row: 2, name: "11号楼" },
-    { id: "dorm-12", col: 2, row: 3, name: "12号楼" },
-    { id: "dorm-13", col: 2, row: 4, name: "13号楼" },
-    { id: "dorm-14", col: 3, row: 0, name: "14号楼" },
-    { id: "dorm-15", col: 3, row: 1, name: "15号楼" },
-    { id: "dorm-16", col: 0, row: 3, name: "16号楼" },
-    { id: "dorm-17", col: 0, row: 4, name: "17号楼" },
-  ] as { id: string; col: number; row: number; name: string }[]).map(({ id, col, row, name }) => ({
-    id,
-    name,
-    x: -40 + col * 24,
-    z: -95 + row * 16,
+  {
+    id: "dorm-01", name: "1号楼",
+    x: -36.53, z: -11.55,
     width: 20, depth: 10, height: 12, floors: 6,
     roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
-    info: `学生宿舍${name}，6层板式楼，橙顶白墙`,
+    info: "学生宿舍1号楼，6层板式楼，橙顶白墙",
     tags: ["宿舍"],
-  })),
+  },
+  {
+    id: "dorm-02", name: "2号楼",
+    x: -36.02, z: -26.25,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍2号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-03", name: "3号楼",
+    x: -36.23, z: -40.30,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍3号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-04", name: "4号楼",
+    x: -35.32, z: -65.34,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍4号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-05", name: "5号楼",
+    x: -35.02, z: -84.24,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍5号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-06", name: "6号楼",
+    x: -16.66, z: -10.04,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍6号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-07", name: "7号楼",
+    x: -15.91, z: -25.12,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍7号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-08", name: "8号楼",
+    x: -16.16, z: -39.12,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍8号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-09", name: "9号楼",
+    x: -15.66, z: -66.17,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍9号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-10", name: "10号楼",
+    x: -16.08, z: -83.27,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍10号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-11", name: "11号楼",
+    x: 1.43, z: -19.74,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍11号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-12", name: "12号楼",
+    x: 0.75, z: -34.31,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍12号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-13", name: "13号楼",
+    x: 1.52, z: -51.37,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍13号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-14", name: "14号楼",
+    x: 1.19, z: -65.50,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍14号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-15", name: "15号楼",
+    x: 1.10, z: -82.06,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍15号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-16", name: "16号楼",
+    x: -53.70, z: -65.40,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍16号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+  {
+    id: "dorm-17", name: "17号楼",
+    x: -53.56, z: -83.54,
+    width: 20, depth: 10, height: 12, floors: 6,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学生宿舍17号楼，6层板式楼，橙顶白墙",
+    tags: ["宿舍"],
+  },
+
+  // ==========================================
+  // 创业园（宿舍区西部，16号楼与18号楼之间）
+  // ==========================================
+  {
+    id: "startup-park",
+    name: "创业园",
+    x: -80.51, z: -85.81,
+    width: 38, depth: 28, height: 6, floors: 2,
+    roofColor: DARK_GREY_ROOF, wallColor: WHITE_WALL,
+    info: "大学生创业孵化园",
+    tags: ["配套"],
+  },
 
   // ==========================================
   // 18-19号宿舍楼（西北区域）
@@ -196,7 +317,7 @@ export const buildings: BuildingData[] = [
   {
     id: "dorm-18",
     name: "18号楼",
-    x: -118, z: -70,
+    x: -100.26, z: -85.32,
     width: 18, depth: 10, height: 12, floors: 6,
     roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
     info: "学生宿舍18号楼，6层板式楼",
@@ -218,7 +339,7 @@ export const buildings: BuildingData[] = [
   {
     id: "food-plaza",
     name: "美食广场",
-    x: -118, z: -20,
+    x: -51.08, z: -34.73,
     width: 48, depth: 48, height: 2, floors: 1,
     roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
     info: "美食广场，校园主要餐饮聚集地",
@@ -227,7 +348,7 @@ export const buildings: BuildingData[] = [
   {
     id: "logistics",
     name: "后勤小楼",
-    x: -148, z: -20,
+    x: -81.69, z: -37.40,
     width: 18, depth: 28, height: 8, floors: 2,
     roofColor: DARK_GREY_ROOF, wallColor: WHITE_WALL,
     info: "后勤服务楼，位于美食广场西侧，楼后为校内小路与校园围墙",
@@ -236,7 +357,7 @@ export const buildings: BuildingData[] = [
   {
     id: "canteen-taoyuan",
     name: "桃源餐厅食堂",
-    x: -118, z: -45,
+    x: -63.94, z: -50.65,
     width: 38, depth: 28, height: 10, floors: 2,
     roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
     info: "桃源餐厅，校园主要食堂",
@@ -290,6 +411,19 @@ export const buildings: BuildingData[] = [
   },
 
   // ==========================================
+  // 行政楼（东区，e楼南侧）
+  // ==========================================
+  {
+    id: "admin-building",
+    name: "行政楼",
+    x: 64.26, z: -66.59,
+    width: 28, depth: 22, height: 12, floors: 4,
+    roofColor: DARK_GREY_ROOF, wallColor: WHITE_WALL,
+    info: "校园行政楼",
+    tags: ["办公"],
+  },
+
+  // ==========================================
   // 校医院（校园最北侧独立建筑）
   // ==========================================
   {
@@ -317,10 +451,19 @@ export const buildings: BuildingData[] = [
   {
     id: "cainiao",
     name: "菜鸟驿站",
-    x: -100, z: -62,
+    x: -80.10, z: -55.63,
     width: 8, depth: 6, height: 3, floors: 1,
     roofColor: DARK_GREY_ROOF, wallColor: WHITE_WALL,
     info: "校园快递收发点",
+    tags: ["生活"],
+  },
+  {
+    id: "bathhouse",
+    name: "澡堂",
+    x: -67.46, z: -81.73,
+    width: 10, depth: 8, height: 3, floors: 1,
+    roofColor: DARK_GREY_ROOF, wallColor: WHITE_WALL,
+    info: "公共浴室，位于宿舍区中部",
     tags: ["生活"],
   },
   {
@@ -412,8 +555,7 @@ export const plazas: PlazaData[] = [
   {
     id: "food-plaza-ground",
     name: "美食广场地面",
-    x: -118, z: -20,
-    width: 48, depth: 48,
+    x: -51.08, z: -34.73,
     tileColor: "#d0ccc4",
   },
   {
