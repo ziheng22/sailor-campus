@@ -124,7 +124,6 @@ function SceneContent({
     ;(window as any).__pos = () => {
       if (playerRef.current) {
         const p = playerRef.current.position
-        console.log(`Player position: (${p.x.toFixed(2)}, ${p.z.toFixed(2)})`)
         return `(${p.x.toFixed(2)}, ${p.z.toFixed(2)})`
       }
       return "player not ready"
@@ -215,14 +214,6 @@ function SceneContent({
         unmatchedEntries.push(entry.name)
       }
     }
-
-    console.log(
-      "[CampusScene] synced:",
-      campusBuildings.filter((b) => b.id.startsWith("dorm-")).length, "dorms,",
-      metaEntries.size, "named,",
-      dormEntries.length, "GLB,",
-      unmatchedEntries.length > 0 ? `${unmatchedEntries.length} unmatched` : "",
-    )
 
     return () => {
       clearBuildingPositions()

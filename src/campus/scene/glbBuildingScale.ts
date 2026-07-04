@@ -84,7 +84,7 @@ export function extractRoadFootprintsFromGlb(glbRoot: THREE.Object3D): Extracted
     roadMeshes.push({ mesh: child, bbox })
   })
 
-  console.log(`[extractRoadFootprints] found ${roadMeshes.length} road meshes in GLB`)
+
 
   if (roadMeshes.length === 0) return []
 

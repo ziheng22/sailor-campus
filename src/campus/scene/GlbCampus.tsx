@@ -257,7 +257,7 @@ function replaceFlowerSculpture(
   const oldWorldQuat = new THREE.Quaternion()
   oldFlower.getWorldQuaternion(oldWorldQuat)
 
-  console.log("[flower] old world height:", oldHeightWorld)
+
 
   // 从场景树中彻底移除原模型（比 visible=false 更可靠，HMR 不会恢复）
   oldFlower.removeFromParent()
@@ -281,12 +281,12 @@ function replaceFlowerSculpture(
     }
   })
   const newHeightLocal = Math.max(newLocalBox.max.y - newLocalBox.min.y, 0.001)
-  console.log("[flower] new local height:", newHeightLocal)
+
 
   // 等比缩放
   const uniformScale = oldHeightWorld / newHeightLocal
   const safeScale = Math.min(Math.max(uniformScale, 0.01), 20)
-  console.log("[flower] scale:", safeScale)
+
 
   flowerClone.scale.setScalar(safeScale)
 
@@ -351,7 +351,7 @@ function replaceFlowerSculpture(
     maxZ: finalWorldBox.max.z,
   }
 
-  console.log("[flower] replacement complete, obstacle:", flowerObstacle)
+
   return { flowerObstacle }
 }
 
@@ -451,12 +451,24 @@ export const GlbCampus = forwardRef<THREE.Group, GlbCampusProps>(function GlbCam
     // 注意：flower 的清理放在独立的 unmount-only effect 中，避免 deps 变化时误删
   }, [campusScene, onCollidersReady, targetBuildingHeight, scale, flowerScene, r3fScene, onGroundSurfaceYReady])
 
-  // 组件卸载时移除 flowerRoot (独立 effect，空 deps 确保仅在真正卸载时执行)
+  // 组件卸载时移除 flowerRoot 并释放 GPU 资源
   useEffect(() => {
     return () => {
       if (flowerReplacedRef.current) {
         const root = r3fScene.getObjectByName("flowerSculptureRoot")
-        if (root) r3fScene.remove(root)
+        if (root) {
+          root.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              child.geometry?.dispose()
+              if (Array.isArray(child.material)) {
+                child.material.forEach((m) => m.dispose())
+              } else {
+                child.material?.dispose()
+              }
+            }
+          })
+          r3fScene.remove(root)
+        }
       }
     }
   }, [])

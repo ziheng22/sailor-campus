@@ -11,7 +11,6 @@ import {
   type CampusDisplayMode,
 } from "./utils/campusFullscreen"
 import "./campusLayout.css"
-import { ColliderEditorPanel } from "./ui/ColliderEditorPanel"
 import { type BuildingData } from "./data/campusData"
 import { type NavigateTarget } from "./navigate/NavigateTarget"
 import {
@@ -275,7 +274,7 @@ export function CampusPage({ onExit }: CampusPageProps) {
   const handleExportJson = useCallback(() => {
     const json = exportOverridesAsJson(overrides)
     void navigator.clipboard.writeText(json)
-    console.log("[Campus] 碰撞覆盖已复制到剪贴板:\n", json)
+
     showToast("JSON 已复制到剪贴板")
   }, [overrides, showToast])
 

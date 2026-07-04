@@ -654,11 +654,20 @@ export function isColliderMesh(name: string): boolean {
   )
 }
 
+/** 悬停材质缓存，避免每次 hover 创建新材质泄漏 */
+const _hoverMaterialCache = new Map<string, THREE.Material>()
+
 export function createCampusMaterial(
   kind: CampusMaterialKind,
   options?: { hovered?: boolean; buildingPart?: BuildingPart },
 ): THREE.Material | THREE.Material[] {
   const hovered = options?.hovered ?? false
+  const part = options?.buildingPart ?? "default"
+  const cacheKey = hovered ? `${kind}:${part}` : ""
+  if (hovered && _hoverMaterialCache.has(cacheKey)) {
+    return _hoverMaterialCache.get(cacheKey)!
+  }
+
   const c = CAMPUS_COLORS
 
   const isBuilding =
@@ -720,6 +729,9 @@ export function createCampusMaterial(
   })()
 
   mat.side = THREE.DoubleSide
+  if (hovered && !Array.isArray(mat)) {
+    _hoverMaterialCache.set(cacheKey, mat as THREE.Material)
+  }
   return mat
 }
 

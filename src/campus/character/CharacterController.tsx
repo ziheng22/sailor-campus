@@ -32,6 +32,11 @@ const TURN_SPEED = Math.PI * 0.5
 const PLAYER_RADIUS = 0.75
 const DEFAULT_GROUND_Y = 0.22
 
+// 每帧复用，避免在 useFrame 中频繁 new THREE.Vector3 产生 GC 压力
+const _moveVec = new THREE.Vector3()
+const _forward = new THREE.Vector3()
+const _right = new THREE.Vector3()
+
 interface CharacterControllerProps {
   colliders: AABB[]
   polygonColliders?: PolygonPoint[][]
@@ -147,29 +152,29 @@ export const CharacterController = forwardRef<THREE.Group, CharacterControllerPr
         if (keys.right) turnDir -= 1
         player.rotation.y += turnDir * TURN_SPEED * delta
 
-        const moveVec = new THREE.Vector3()
-        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion)
-        const right = new THREE.Vector3(1, 0, 0).applyQuaternion(player.quaternion)
-        if (keys.forward) moveVec.add(forward)
-        if (keys.backward) moveVec.sub(forward)
+        _forward.set(0, 0, -1).applyQuaternion(player.quaternion)
+        _right.set(1, 0, 0).applyQuaternion(player.quaternion)
+        _moveVec.set(0, 0, 0)
+        if (keys.forward) _moveVec.add(_forward)
+        if (keys.backward) _moveVec.sub(_forward)
 
         const { x: joyX, z: joyZ } = getCampusJoystickInput()
         if (Math.abs(joyX) > 0.01 || Math.abs(joyZ) > 0.01) {
-          moveVec.add(forward.clone().multiplyScalar(-joyZ))
-          moveVec.add(right.clone().multiplyScalar(joyX))
+          _moveVec.add(_forward.clone().multiplyScalar(-joyZ))
+          _moveVec.add(_right.clone().multiplyScalar(joyX))
         }
 
-        const moving = moveVec.lengthSq() > 1e-6
+        const moving = _moveVec.lengthSq() > 1e-6
         if (moving !== isMovingRef.current) {
           isMovingRef.current = moving
           setIsMoving(moving)
         }
 
         if (moving) {
-          moveVec.normalize()
+          _moveVec.normalize()
           const moveDist = MOVE_SPEED * delta
-          const stepX = moveVec.x * moveDist
-          const stepZ = moveVec.z * moveDist
+          const stepX = _moveVec.x * moveDist
+          const stepZ = _moveVec.z * moveDist
 
           // 最终目标位置（用于桥面/湖面判定，避免分子步时中间位置被湖障碍阻挡）
           const finalX = player.position.x + stepX

@@ -64,14 +64,11 @@ export function RobotCharacter({ isMoving = false, modelUrl }: RobotCharacterPro
     const { height, minY } = measureMeshYExtent(cloned)
     const scale = 1.15 / height
     cloned.scale.setScalar(scale)
-    console.log("[robot] raw height:", height, "scale:", scale)
-
     // 贴地 + 居中
     const box = new THREE.Box3().setFromObject(cloned)
     const center = new THREE.Vector3()
     box.getCenter(center)
     cloned.position.set(-center.x, -box.min.y, -center.z)
-    console.log("[robot] after ground: pos", cloned.position.toArray())
 
     return cloned
   }, [scene])
