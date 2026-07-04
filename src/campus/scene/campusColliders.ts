@@ -4,6 +4,8 @@ import { classifyMesh } from "./campusMaterials"
 import type { CampusColliderEntry, ColliderSourceKind } from "../debug/campusColliderTypes"
 import type { PolygonPoint } from "../utils/colliderPolygon"
 
+import { buildBridgeCollision, lakeObstaclesAvoidingBridges } from "./campusWalkSurface"
+
 /** 墙段在 XZ 上过薄时，碰撞体最小世界厚度 */
 const MIN_WALL_WORLD_THICKNESS = 0.55
 
@@ -18,12 +20,6 @@ const RESTAURANT_COLLISION_MESHES = new Set(["餐厅", "校内驿站"])
 
 /** 与 GLB 导出一致：每栋拆分建筑 6 个墙段 mesh */
 const PARTS_PER_SPLIT_BUILDING = 6
-
-/** 桥两侧护栏占桥宽比例（每侧），防止角色走入湖中 */
-const BRIDGE_RAIL_FRACTION = 0.25
-
-/** 湖面开孔比桥面略大，避免贴桥时仍判为入湖 */
-const BRIDGE_LAKE_CLEARANCE = 1.25
 
 /** 湖面阻挡厚度（mesh 为平面，y=0） */
 const LAKE_BLOCK_PADDING = 1.2
@@ -347,7 +343,7 @@ function lakeFootprintCollider(mesh: THREE.Mesh): AABB | null {
   return expandThinAABB(box, LAKE_BLOCK_PADDING)
 }
 
-function inflateAABB(aabb: AABB, padding: number): AABB {
+export function inflateAABB(aabb: AABB, padding: number): AABB {
   return {
     minX: aabb.minX - padding,
     maxX: aabb.maxX + padding,
@@ -360,7 +356,7 @@ function aabbOverlap(a: AABB, b: AABB): boolean {
   return a.minX < b.maxX && a.maxX > b.minX && a.minZ < b.maxZ && a.maxZ > b.minZ
 }
 
-function aabbArea(a: AABB): number {
+export function aabbArea(a: AABB): number {
   return Math.max(0, a.maxX - a.minX) * Math.max(0, a.maxZ - a.minZ)
 }
 
@@ -389,7 +385,7 @@ function splitAabbAroundHole(region: AABB, hole: AABB): AABB[] {
   return pieces.filter((r) => aabbArea(r) > 0.8)
 }
 
-function splitObstaclesAroundHole(obstacles: AABB[], hole: AABB): AABB[] {
+export function splitObstaclesAroundHole(obstacles: AABB[], hole: AABB): AABB[] {
   const result: AABB[] = []
   for (const obs of obstacles) {
     result.push(...splitAabbAroundHole(obs, hole))
@@ -397,94 +393,7 @@ function splitObstaclesAroundHole(obstacles: AABB[], hole: AABB): AABB[] {
   return result
 }
 
-/** 从湖泊障碍中挖去桥面通道，仅保留湖体区域阻挡 */
-function lakeObstaclesAvoidingBridges(lakeBox: AABB, bridgeDecks: AABB[]): AABB[] {
-  let regions: AABB[] = [lakeBox]
-  for (const deck of bridgeDecks) {
-    regions = splitObstaclesAroundHole(regions, inflateAABB(deck, BRIDGE_LAKE_CLEARANCE))
-  }
-  return regions.filter((r) => aabbArea(r) > 0.8)
-}
-
-/** 桥面可行走区 + 两侧护栏（东西两侧，南北为出入口不被阻） */
-function buildBridgeCollision(mesh: THREE.Mesh): { walkDeck: CampusWalkSurface; rails: AABB[] } {
-  mesh.updateWorldMatrix(true, false)
-  const box = new THREE.Box3().setFromObject(mesh)
-  const size = new THREE.Vector3()
-  box.getSize(size)
-
-  // 护栏放在短边方向（东西两侧），长边方向（南北）留作出入口
-  const railAlongX = size.x < size.z
-  const railSize = railAlongX
-    ? Math.max(size.x * BRIDGE_RAIL_FRACTION, MIN_WALL_WORLD_THICKNESS)
-    : Math.max(size.z * BRIDGE_RAIL_FRACTION, MIN_WALL_WORLD_THICKNESS)
-
-  let walkDeck: CampusWalkSurface
-  let rails: AABB[]
-
-  const deckFallbackY = box.max.y
-
-  if (railAlongX) {
-    // 桥南北走向：护栏放在东西两侧，南北为出入口
-    walkDeck = {
-      minX: box.min.x + railSize,
-      maxX: box.max.x - railSize,
-      minZ: box.min.z,
-      maxZ: box.max.z,
-      surfaceY: deckFallbackY,
-      // 拱桥有拱洞空隙，射线可能穿洞漏到湖面，不使用 meshUuid 做精准采样
-    }
-    rails = [
-      // 西边护栏
-      { minX: box.min.x, maxX: box.min.x + railSize, minZ: box.min.z, maxZ: box.max.z },
-      // 东边护栏
-      { minX: box.max.x - railSize, maxX: box.max.x, minZ: box.min.z, maxZ: box.max.z },
-    ]
-  } else {
-    // 桥东西走向：护栏放在南北两侧，东西为出入口
-    walkDeck = {
-      minX: box.min.x,
-      maxX: box.max.x,
-      minZ: box.min.z + railSize,
-      maxZ: box.max.z - railSize,
-      surfaceY: deckFallbackY,
-      // 拱桥有拱洞空隙，射线可能穿洞漏到湖面，不使用 meshUuid 做精准采样
-    }
-    rails = [
-      // 南边护栏
-      { minX: box.min.x, maxX: box.max.x, minZ: box.min.z, maxZ: box.min.z + railSize },
-      // 北边护栏
-      { minX: box.min.x, maxX: box.max.x, minZ: box.max.z - railSize, maxZ: box.max.z },
-    ]
-  }
-
-  return { walkDeck, rails }
-}
-
-function isPointOnWalkSurface(
-  x: number,
-  z: number,
-  surface: CampusWalkSurface,
-  meshByUuid?: Map<string, THREE.Mesh>,
-): boolean {
-  if (x < surface.minX || x > surface.maxX || z < surface.minZ || z > surface.maxZ) {
-    return false
-  }
-  if (surface.meshUuid && meshByUuid) {
-    const mesh = meshByUuid.get(surface.meshUuid)
-    if (mesh) return sampleMeshSurfaceYAtXZ(mesh, x, z) != null
-  }
-  return true
-}
-
-export function isOnWalkSurface(
-  x: number,
-  z: number,
-  walkSurfaces: CampusWalkSurface[],
-  meshByUuid?: Map<string, THREE.Mesh>,
-): boolean {
-  return walkSurfaces.some((surface) => isPointOnWalkSurface(x, z, surface, meshByUuid))
-}
+// bridge/walk-surface functions → campusWalkSurface.ts
 
 export function collectGlbColliders(
   glbRoot: THREE.Object3D,
@@ -513,7 +422,7 @@ export function collectGlbColliders(
 
   const bridgeMesh = glbRoot.getObjectByName("桥") as THREE.Mesh | null
   if (bridgeMesh) {
-    const { walkDeck, rails } = buildBridgeCollision(bridgeMesh)
+    const { walkDeck, rails } = buildBridgeCollision(bridgeMesh, MIN_WALL_WORLD_THICKNESS)
     walkSurfaces.push(walkDeck)
     bridgeDecks.push({
       minX: walkDeck.minX,
@@ -597,53 +506,4 @@ export function collectGlbColliders(
   return { obstacles, polygonObstacles: [], lakePolygonObstacles: [], lakeObstacles, walkSurfaces, entries, meshByUuid }
 }
 
-export function resolveWalkSurfaceY(
-  x: number,
-  z: number,
-  defaultY: number,
-  walkSurfaces: CampusWalkSurface[],
-  meshByUuid?: Map<string, THREE.Mesh>,
-): number {
-  for (const surface of walkSurfaces) {
-    if (!isPointOnWalkSurface(x, z, surface, meshByUuid)) continue
-    if (surface.meshUuid && meshByUuid) {
-      const mesh = meshByUuid.get(surface.meshUuid)
-      if (mesh) {
-        const sampled = sampleMeshSurfaceYAtXZ(mesh, x, z)
-        if (sampled != null) return sampled
-        continue
-      }
-    }
-    return surface.surfaceY
-  }
-  return defaultY
-}
-
-/** 桥上且脚下有桥面几何时，不检测湖面 */
-export function buildActiveObstacles(
-  x: number,
-  z: number,
-  obstacles: AABB[],
-  lakeObstacles: AABB[],
-  walkSurfaces: CampusWalkSurface[],
-  meshByUuid?: Map<string, THREE.Mesh>,
-): AABB[] {
-  if (isOnWalkSurface(x, z, walkSurfaces, meshByUuid)) {
-    return obstacles
-  }
-  return obstacles.concat(lakeObstacles)
-}
-
-export function buildActivePolygonObstacles(
-  x: number,
-  z: number,
-  polygonObstacles: PolygonPoint[][],
-  lakePolygonObstacles: PolygonPoint[][],
-  walkSurfaces: CampusWalkSurface[],
-  meshByUuid?: Map<string, THREE.Mesh>,
-): PolygonPoint[][] {
-  if (isOnWalkSurface(x, z, walkSurfaces, meshByUuid)) {
-    return polygonObstacles
-  }
-  return polygonObstacles.concat(lakePolygonObstacles)
-}
+// resolveWalkSurfaceY / buildActiveObstacles / buildActivePolygonObstacles → campusWalkSurface.ts

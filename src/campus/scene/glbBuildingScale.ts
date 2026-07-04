@@ -12,8 +12,10 @@ import {
 export {
   buildActiveObstacles,
   buildActivePolygonObstacles,
-  collectGlbColliders,
   resolveWalkSurfaceY,
+} from "./campusWalkSurface"
+export {
+  collectGlbColliders,
   type CampusCollisionData,
   type CampusWalkSurface,
 } from "./campusColliders"
