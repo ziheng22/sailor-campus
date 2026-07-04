@@ -71,87 +71,83 @@ export function NavigateInput({ activeTarget, onSelect, onClear }: Props) {
       <button
         data-campus-ui
         onClick={handleOpen}
-        title="导航"
+        title="搜索目的地导航"
         style={{
           position: "fixed",
           top: 72,
           right: 16,
           zIndex: 20,
-          width: 44,
           height: 44,
           borderRadius: 22,
-          border: "1px solid rgba(255,255,255,0.2)",
+          border: "1px solid rgba(255,204,0,0.35)",
           background: activeTarget
             ? "rgba(255,200,0,0.25)"
-            : "rgba(30,30,30,0.78)",
+            : "rgba(30,30,30,0.82)",
           color: "white",
-          fontSize: 20,
+          fontSize: 14,
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
+          gap: 6,
+          padding: activeTarget ? "0 6px 0 12px" : "0 16px",
           backdropFilter: "blur(10px)",
-          transition: "background 0.2s",
+          transition: "background 0.2s, border-color 0.2s",
+          animation: activeTarget ? "none" : "navGlow 2s ease-in-out infinite",
+          fontFamily: "inherit",
         }}
         onPointerEnter={(e) => {
-          (e.target as HTMLElement).style.background = "rgba(255,255,255,0.15)"
+          const el = e.target as HTMLElement
+          el.style.background = activeTarget
+            ? "rgba(255,200,0,0.35)"
+            : "rgba(255,255,255,0.12)"
+          el.style.borderColor = "rgba(255,204,0,0.6)"
         }}
         onPointerLeave={(e) => {
-          (e.target as HTMLElement).style.background = activeTarget
+          const el = e.target as HTMLElement
+          el.style.background = activeTarget
             ? "rgba(255,200,0,0.25)"
-            : "rgba(30,30,30,0.78)"
+            : "rgba(30,30,30,0.82)"
+          el.style.borderColor = "rgba(255,204,0,0.35)"
         }}
       >
-        {activeTarget ? "🎯" : "🔍"}
+        {activeTarget ? (
+          <>
+            <span style={{ fontSize: 16 }}>🎯</span>
+            <span style={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              maxWidth: 120,
+            }}>
+              {activeTarget.name}
+            </span>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleClear() }}
+              style={{
+                background: "rgba(255,80,80,0.55)",
+                border: "none",
+                borderRadius: 14,
+                color: "white",
+                width: 22,
+                height: 22,
+                fontSize: 12,
+                cursor: "pointer",
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              ✕
+            </button>
+          </>
+        ) : (
+          <>
+            <span style={{ fontSize: 16 }}>🔍</span>
+            <span style={{ fontWeight: 500 }}>搜索目的地…</span>
+          </>
+        )}
       </button>
-
-      {/* 当前导航目标标签 */}
-      {activeTarget && (
-        <div
-          data-campus-ui
-          style={{
-            position: "fixed",
-            top: 74,
-            right: 68,
-            zIndex: 20,
-            background: "rgba(30,30,30,0.82)",
-            borderRadius: 20,
-            padding: "6px 14px 6px 6px",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            backdropFilter: "blur(10px)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            color: "white",
-            fontSize: 13,
-            maxWidth: "50vw",
-          }}
-        >
-          <span style={{ fontSize: 14 }}>📍</span>
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {activeTarget.name}
-          </span>
-          <button
-            onClick={handleClear}
-            style={{
-              background: "rgba(255,80,80,0.55)",
-              border: "none",
-              borderRadius: 14,
-              color: "white",
-              width: 22,
-              height: 22,
-              fontSize: 12,
-              cursor: "pointer",
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            ✕
-          </button>
-        </div>
-      )}
 
       {/* 搜索弹窗 */}
       {open && (

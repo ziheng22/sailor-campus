@@ -167,32 +167,56 @@ export const CharacterController = forwardRef<THREE.Group, CharacterControllerPr
 
         if (moving) {
           moveVec.normalize()
-          const nextX = player.position.x + moveVec.x * MOVE_SPEED * delta
-          const nextZ = player.position.z + moveVec.z * MOVE_SPEED * delta
+          const moveDist = MOVE_SPEED * delta
+          const stepX = moveVec.x * moveDist
+          const stepZ = moveVec.z * moveDist
+
+          // 最终目标位置（用于桥面/湖面判定，避免分子步时中间位置被湖障碍阻挡）
+          const finalX = player.position.x + stepX
+          const finalZ = player.position.z + stepZ
           const activeObstacles = buildActiveObstacles(
-            nextX,
-            nextZ,
+            finalX,
+            finalZ,
             collidersRef.current,
             lakeObstaclesRef.current,
             walkSurfacesRef.current,
             walkSurfaceMeshesRef.current,
           )
           const activePolygons = buildActivePolygonObstacles(
-            nextX,
-            nextZ,
+            finalX,
+            finalZ,
             polygonCollidersRef.current,
             lakePolygonObstaclesRef.current,
             walkSurfacesRef.current,
             walkSurfaceMeshesRef.current,
           )
-          const resolved = resolveCollisionMixed(
-            { x: nextX, z: nextZ },
-            PLAYER_RADIUS,
-            activeObstacles,
-            activePolygons,
-          )
-          player.position.x = resolved.x
-          player.position.z = resolved.z
+
+          // 子步长碰撞：防止低帧率下穿透薄墙
+          const maxSafeStep = PLAYER_RADIUS * 0.5
+          const subSteps = moveDist > maxSafeStep
+            ? Math.min(Math.ceil(moveDist / maxSafeStep), 10)
+            : 1
+          const subStepDist = moveDist / subSteps
+
+          let curX = player.position.x
+          let curZ = player.position.z
+
+          for (let s = 0; s < subSteps; s++) {
+            const nextX = curX + stepX / subSteps
+            const nextZ = curZ + stepZ / subSteps
+            const resolved = resolveCollisionMixed(
+              { x: nextX, z: nextZ },
+              PLAYER_RADIUS,
+              activeObstacles,
+              activePolygons,
+              subStepDist,
+            )
+            curX = resolved.x
+            curZ = resolved.z
+          }
+
+          player.position.x = curX
+          player.position.z = curZ
         }
       }
 

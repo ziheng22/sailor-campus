@@ -475,6 +475,142 @@ export const buildings: BuildingData[] = [
     info: "宿舍区综合服务中心（便利店、打印店、热水房）",
     tags: ["生活"],
   },
+
+  // ==========================================
+  // 生活配套 — 广播站、邮政、商业街等
+  // ==========================================
+  {
+    id: "radio-station",
+    name: "广播站",
+    x: -24, z: -5,
+    width: 8, depth: 8, height: 3, floors: 1,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "校园广播站",
+    tags: ["配套"],
+  },
+  {
+    id: "post-office",
+    name: "邮政",
+    x: 24, z: -5,
+    width: 8, depth: 8, height: 3, floors: 1,
+    roofColor: DARK_GREY_ROOF, wallColor: WHITE_WALL,
+    info: "邮政服务点",
+    tags: ["生活"],
+  },
+  {
+    id: "commercial-street",
+    name: "商业街",
+    x: -81, z: -26,
+    width: 22, depth: 16, height: 4, floors: 1,
+    roofColor: DARK_GREY_ROOF, wallColor: CREAM_WALL,
+    info: "校园商业街，含商店和后勤小楼",
+    tags: ["生活"],
+  },
+  {
+    id: "lecture-hall",
+    name: "学术报告厅",
+    x: 45, z: -10,
+    width: 18, depth: 14, height: 6, floors: 2,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "学术报告厅，位于S楼南侧",
+    tags: ["教学"],
+  },
+  {
+    id: "stadium-stands",
+    name: "操场看台",
+    x: 75, z: -80,
+    width: 40, depth: 8, height: 4, floors: 1,
+    roofColor: DARK_GREY_ROOF, wallColor: GREY_WALL,
+    info: "东区操场西侧主席台看台",
+    tags: ["运动"],
+  },
+
+  // ==========================================
+  // 东南连体建筑 — 办公室 1-6
+  // ==========================================
+  {
+    id: "office-1", name: "办公楼1",
+    x: 15, z: 55, width: 14, depth: 10, height: 9, floors: 3,
+    roofColor: DARK_GREY_ROOF, wallColor: WHITE_WALL,
+    info: "东南连体建筑群办公楼", tags: ["办公"],
+  },
+  {
+    id: "office-2", name: "办公楼2",
+    x: 25, z: 55, width: 14, depth: 10, height: 9, floors: 3,
+    roofColor: DARK_GREY_ROOF, wallColor: WHITE_WALL,
+    info: "东南连体建筑群办公楼", tags: ["办公"],
+  },
+  {
+    id: "office-3", name: "办公楼3",
+    x: 35, z: 55, width: 14, depth: 10, height: 9, floors: 3,
+    roofColor: DARK_GREY_ROOF, wallColor: WHITE_WALL,
+    info: "东南连体建筑群办公楼", tags: ["办公"],
+  },
+  {
+    id: "office-4", name: "办公楼4",
+    x: 15, z: 65, width: 14, depth: 10, height: 9, floors: 3,
+    roofColor: DARK_GREY_ROOF, wallColor: WHITE_WALL,
+    info: "东南连体建筑群办公楼", tags: ["办公"],
+  },
+  {
+    id: "office-5", name: "办公楼5",
+    x: 25, z: 65, width: 14, depth: 10, height: 9, floors: 3,
+    roofColor: DARK_GREY_ROOF, wallColor: WHITE_WALL,
+    info: "东南连体建筑群办公楼", tags: ["办公"],
+  },
+  {
+    id: "office-6", name: "办公楼6",
+    x: 35, z: 65, width: 14, depth: 10, height: 9, floors: 3,
+    roofColor: DARK_GREY_ROOF, wallColor: WHITE_WALL,
+    info: "东南连体建筑群办公楼", tags: ["办公"],
+  },
+
+  // ==========================================
+  // 新建楼 1-5
+  // ==========================================
+  {
+    id: "new-building-1", name: "新建楼1",
+    x: 60, z: 80, width: 12, depth: 10, height: 10, floors: 3,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "新建楼", tags: ["教学"],
+  },
+  {
+    id: "new-building-2", name: "新建楼2",
+    x: 70, z: 80, width: 12, depth: 10, height: 10, floors: 3,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "新建楼", tags: ["生活"],
+  },
+  {
+    id: "new-building-3", name: "新建楼3",
+    x: 80, z: 80, width: 12, depth: 10, height: 10, floors: 3,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "新建楼", tags: ["教学"],
+  },
+  {
+    id: "new-building-4", name: "新建楼4",
+    x: 60, z: 90, width: 12, depth: 10, height: 10, floors: 3,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "新建楼", tags: ["生活"],
+  },
+  {
+    id: "new-building-5", name: "新建楼5",
+    x: 70, z: 90, width: 12, depth: 10, height: 10, floors: 3,
+    roofColor: ORANGE_ROOF, wallColor: WHITE_WALL,
+    info: "新建楼", tags: ["教学"],
+  },
+
+  // ==========================================
+  // 连廊
+  // ==========================================
+  {
+    id: "corridor",
+    name: "连廊",
+    x: 40, z: 55,
+    width: 8, depth: 30, height: 4, floors: 1,
+    roofColor: DARK_GREY_ROOF, wallColor: GREY_WALL,
+    info: "东南建筑群连廊",
+    tags: ["连体建筑"],
+  },
 ]
 
 // ==================== ROADS ====================

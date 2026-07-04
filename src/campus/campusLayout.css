@@ -98,3 +98,15 @@ html.campus-immersive .campus-immersive-exit {
   border-radius: 8px;
   cursor: pointer;
 }
+
+/* 导航按钮脉冲光晕 */
+@keyframes navGlow {
+  0%, 100% {
+    border-color: rgba(255, 204, 0, 0.25);
+    box-shadow: 0 0 8px rgba(255, 204, 0, 0.1);
+  }
+  50% {
+    border-color: rgba(255, 204, 0, 0.55);
+    box-shadow: 0 0 16px rgba(255, 204, 0, 0.25);
+  }
+}

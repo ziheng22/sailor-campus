@@ -190,6 +190,35 @@ function disableSplitMeshRaycasts(group: THREE.Group) {
   })
 }
 
+/** 将邮政的南北位置（z）与广播站对齐 */
+function alignPostOfficeSymmetry(group: THREE.Group): void {
+  const campusScene = group.children[0]
+  if (!campusScene) return
+
+  let radioStation: THREE.Object3D | null = null
+  let postOffice: THREE.Object3D | null = null
+
+  campusScene.traverse((child) => {
+    if (child.name === "广播站") radioStation = child
+    if (child.name === "邮政") postOffice = child
+  })
+
+  if (!radioStation || !postOffice) return
+
+  group.updateWorldMatrix(true, false)
+  const radioWorldPos = new THREE.Vector3()
+  radioStation.getWorldPosition(radioWorldPos)
+
+  // 仅将邮政的 z 对齐到广播站的 z
+  const postWorldPos = new THREE.Vector3()
+  postOffice.getWorldPosition(postWorldPos)
+  const targetWorld = new THREE.Vector3(postWorldPos.x, radioWorldPos.y, radioWorldPos.z)
+  const localTarget = postOffice.parent
+    ? postOffice.parent.worldToLocal(targetWorld.clone())
+    : targetWorld
+  postOffice.position.z = localTarget.z
+}
+
 // ---- flower sculpture replacement ----
 
 interface FlowerReplaceResult {
@@ -385,10 +414,12 @@ export const GlbCampus = forwardRef<THREE.Group, GlbCampusProps>(function GlbCam
 
     splitCanteenAndStation(group)
 
-    // 替换红色花蕊（仅一次），挂载到 scene 层级避免继承非等比 scale
+    // 替换红色花蕊，挂载到 scene 层级避免继承非等比 scale
+    // 不依赖 ref flag，改用 r3fScene 上是否存在来判断（防止 StrictMode 重挂载后丢失）
     let flowerObstacle: AABB | null = null
+    const existingFlowerRoot = r3fScene.getObjectByName("flowerSculptureRoot")
 
-    if (!flowerReplacedRef.current && flowerScene) {
+    if (!existingFlowerRoot && flowerScene) {
       const result = replaceFlowerSculpture(group, flowerScene, r3fScene, groundY)
       if (result) {
         flowerReplacedRef.current = true
@@ -398,6 +429,9 @@ export const GlbCampus = forwardRef<THREE.Group, GlbCampusProps>(function GlbCam
         if (srcOld) srcOld.removeFromParent()
       }
     }
+
+    // 邮政与广播站对称放置（以 x=0 中轴镜像）
+    alignPostOfficeSymmetry(group)
 
     const colliderData = collectGlbColliders(group, groundY)
     if (flowerObstacle) {

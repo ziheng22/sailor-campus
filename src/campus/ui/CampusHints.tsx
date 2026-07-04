@@ -65,6 +65,25 @@ export function CampusHints() {
         👆 点击建筑查看详情
       </div>
 
+      {/* 导航搜索提示 */}
+      <div
+        style={{
+          background: "rgba(0,0,0,0.72)",
+          backdropFilter: "blur(10px)",
+          borderRadius: 14,
+          padding: "12px 22px",
+          border: "1px solid rgba(255,255,255,0.12)",
+          color: "white",
+          fontSize: 14,
+          textAlign: "center",
+          opacity: show ? 1 : 0,
+          transform: show ? "translateY(0)" : "translateY(10px)",
+          transition: "all 0.5s ease 0.3s",
+        }}
+      >
+        🔍 点击右上角搜索按钮导航到任意地点
+      </div>
+
       {/* 摇杆拖拽提示 — 仅移动端 */}
       {touch && (
         <div

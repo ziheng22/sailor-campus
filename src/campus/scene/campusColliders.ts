@@ -7,6 +7,9 @@ import type { PolygonPoint } from "../utils/colliderPolygon"
 /** 墙段在 XZ 上过薄时，碰撞体最小世界厚度 */
 const MIN_WALL_WORLD_THICKNESS = 0.55
 
+/** 商业街/商店区域墙体更厚，防止玩家高速穿模 */
+const COMMERCIAL_MIN_THICKNESS = 0.85
+
 /** 餐饮区：商业街、商店 */
 const COMMERCIAL_FOOD_ZONE_MESHES = new Set(["商业街", "商店"])
 
@@ -314,8 +317,14 @@ function commercialFoodZoneColliders(
   }
 
   for (const mesh of otherMeshes) {
-    const aabb = aabbFromMeshesLikeWBuilding([mesh])
-    if (aabb) pushObstacle(obstacles, entries, aabb, mesh.name, "commercial", mesh)
+    mesh.updateWorldMatrix(true, false)
+    const box = new THREE.Box3().setFromObject(mesh)
+    const size = new THREE.Vector3()
+    box.getSize(size)
+    if (size.y >= 0.01 && size.x * size.z >= 0.5) {
+      const aabb = expandThinAABB(box, COMMERCIAL_MIN_THICKNESS)
+      pushObstacle(obstacles, entries, aabb, mesh.name, "commercial", mesh)
+    }
   }
 }
 

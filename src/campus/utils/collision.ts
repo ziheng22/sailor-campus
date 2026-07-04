@@ -22,9 +22,11 @@ export function resolveCollision(
   pos: { x: number; z: number },
   radius: number,
   obstacles: AABB[],
+  moveDelta = 0,
 ): { x: number; z: number } {
   let { x, z } = pos
-  for (let pass = 0; pass < 3; pass++) {
+  const passes = Math.max(3, Math.ceil(moveDelta / 0.375))
+  for (let pass = 0; pass < passes; pass++) {
     for (const obs of obstacles) {
       const expanded = {
         minX: obs.minX - radius,
@@ -122,12 +124,14 @@ export function resolveCirclePolygon(
   pos: { x: number; z: number },
   radius: number,
   points: PolygonPoint[],
+  moveDelta = 0,
 ): { x: number; z: number } {
   if (points.length < 3) return pos
   let { x, z } = pos
   const c = polygonCentroid(points)
 
-  for (let pass = 0; pass < 5; pass++) {
+  const passes = Math.max(5, Math.ceil(moveDelta / 0.25))
+  for (let pass = 0; pass < passes; pass++) {
     if (pointInPolygon(x, z, points)) {
       let bestDist = Infinity
       let pushNx = 0
@@ -174,10 +178,11 @@ export function resolveCollisionMixed(
   radius: number,
   aabbs: AABB[],
   polygons: PolygonPoint[][],
+  moveDelta = 0,
 ): { x: number; z: number } {
-  let resolved = resolveCollision(pos, radius, aabbs)
+  let resolved = resolveCollision(pos, radius, aabbs, moveDelta)
   for (const poly of polygons) {
-    resolved = resolveCirclePolygon(resolved, radius, poly)
+    resolved = resolveCirclePolygon(resolved, radius, poly, moveDelta)
   }
   return resolved
 }

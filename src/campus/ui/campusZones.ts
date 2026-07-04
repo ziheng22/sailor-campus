@@ -14,10 +14,10 @@ export const campusZones: CampusZone[] = [
   // 北区 — 宿舍 & 生活配套
   // ══════════════════════════════════════════
 
-  // 1-17 号楼主体（4列）
+  // 1-17 号楼主体（南至教学区前路 z=-16、东至东侧路 x=50）
   {
     id: "dorm-main", name: "学生宿舍区",
-    x: -26, z: -48, radius: 50,
+    x: -25, z: -53, radius: 43,
     icon: "🏠", color: "#60a5fa",
     subtitle: "1 ~ 17 号楼",
   },
@@ -35,25 +35,12 @@ export const campusZones: CampusZone[] = [
     icon: "📦", color: "#f97316",
     subtitle: "快递收发点",
   },
-  // 宿舍服务中心
-  {
-    id: "shop-dorm", name: "宿舍服务中心",
-    x: 10, z: -85, radius: 12,
-    icon: "🏪", color: "#f59e0b",
-  },
-  // 美食广场 + 桃源餐厅食堂
+  // 美食广场 + 商业街 + 桃源餐厅 + 驿站
   {
     id: "food-area", name: "美食广场",
-    x: -57, z: -42, radius: 30,
+    x: -75, z: -35, radius: 22,
     icon: "🍜", color: "#f97316",
-    subtitle: "美食广场 · 桃源餐厅",
-  },
-  // 商业街
-  {
-    id: "commercial", name: "商业街",
-    x: -81, z: -26, radius: 22,
-    icon: "🛍️", color: "#f59e0b",
-    subtitle: "商业街 · 商店 · 后勤小楼",
+    subtitle: "桃源餐厅 · 商业街 · 驿站",
   },
 
   // ══════════════════════════════════════════
@@ -61,14 +48,8 @@ export const campusZones: CampusZone[] = [
   // ══════════════════════════════════════════
 
   {
-    id: "teaching-axis", name: "教学中轴线",
-    x: 44, z: -24, radius: 34,
-    icon: "📚", color: "#eab308",
-    subtitle: "W 教学楼 · S 实验楼 · E 教学楼",
-  },
-  {
-    id: "teaching-plaza", name: "教学楼前广场",
-    x: 44, z: -8, radius: 26,
+    id: "teaching-plaza", name: "S楼前广场",
+    x: 44, z: -14, radius: 18,
     icon: "🏫", color: "#d4d4d8",
   },
   // 行政楼
@@ -76,13 +57,6 @@ export const campusZones: CampusZone[] = [
     id: "admin-building", name: "行政楼",
     x: 64, z: -67, radius: 20,
     icon: "🏛️", color: "#94a3b8",
-  },
-  // 球类运动场（东区）
-  {
-    id: "sports-courts", name: "球类运动场",
-    x: 90, z: -46, radius: 32,
-    icon: "🏀", color: "#84cc16",
-    subtitle: "篮球 · 网球 · 排球",
   },
   // 东操场
   {
@@ -104,7 +78,7 @@ export const campusZones: CampusZone[] = [
 
   {
     id: "weiming-lake", name: "未名湖",
-    x: 43, z: 6, radius: 28,
+    x: 43, z: 6, radius: 24,
     icon: "🌊", color: "#38bdf8",
     subtitle: "校园中心湖",
   },
@@ -114,38 +88,19 @@ export const campusZones: CampusZone[] = [
     icon: "💙", color: "#7dd3fc",
     subtitle: "未名湖东侧",
   },
-  {
-    id: "central-plaza", name: "中心广场",
-    x: 42, z: 24, radius: 24,
-    icon: "🏛️", color: "#d4d4d8",
-    subtitle: "升旗台",
-  },
-  {
-    id: "lakefront-plaza", name: "未名湖前广场",
-    x: 10, z: 30, radius: 22,
-    icon: "🌿", color: "#86efac",
-  },
-  // 石拱桥 + 红色花蕊
-  {
-    id: "lake-landmarks", name: "未名湖景区",
-    x: 33, z: -3, radius: 22,
-    icon: "🌸", color: "#f472b6",
-    subtitle: "石拱桥 · 红色花蕊雕塑",
-  },
-
   // ══════════════════════════════════════════
   // 南区 — 连体建筑 & 文体
   // ══════════════════════════════════════════
 
   {
-    id: "southeast-complex", name: "东南连体建筑群",
-    x: 20, z: 55, radius: 42,
+    id: "southeast-complex", name: "A-B-L楼",
+    x: 22, z: 57, radius: 34,
     icon: "🏗️", color: "#d4d4d8",
     subtitle: "A 楼 · B 楼 · 办公楼",
   },
   {
     id: "library", name: "图书馆",
-    x: 67, z: 42, radius: 28,
+    x: 67, z: 42, radius: 32,
     icon: "📖", color: "#a78bfa",
     subtitle: "校园地标建筑",
   },
