@@ -417,6 +417,9 @@ export function CampusPage({ onExit }: CampusPageProps) {
       <CampusScene
         navigateTarget={navigateTarget}
         onBuildingClick={handleBuildingClick}
+        overrides={overrides}
+        roadDebug={false}
+        roadDefs={roadOverrides.roads}
       />
       </div>
       <CampusUI
