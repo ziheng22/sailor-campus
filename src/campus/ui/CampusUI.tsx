@@ -34,7 +34,6 @@ export function CampusUI(props: CampusUIProps) {
 
   const isTouchDevice = useTouchDevice()
   const [landscape, setLandscape] = useState(false)
-  const [joystickVisible, setJoystickVisible] = useState(true)
 
   useEffect(() => {
     const check = () => setLandscape(window.innerWidth > window.innerHeight)
@@ -76,17 +75,19 @@ export function CampusUI(props: CampusUIProps) {
         padding: "10px 16px", pointerEvents: "none",
       }}>
         <div style={{ display: "flex", gap: 8, pointerEvents: "auto", flexShrink: 0 }}>
-          <button
-            className="campus-topbar-btn"
-            onClick={() => { window.history.back() }}
-            style={{
-              background: "rgba(0,0,0,0.55)", color: "white",
-              border: "none", borderRadius: 20,
-              padding: "6px 14px", fontSize: 14, cursor: "pointer",
-            }}
-          >
-            ← 返回
-          </button>
+          {!isTouchDevice && (
+            <button
+              className="campus-topbar-btn"
+              onClick={() => { window.history.back() }}
+              style={{
+                background: "rgba(0,0,0,0.55)", color: "white",
+                border: "none", borderRadius: 20,
+                padding: "6px 14px", fontSize: 14, cursor: "pointer",
+              }}
+            >
+              ← 返回
+            </button>
+          )}
           <div
             className="campus-topbar-title"
             style={{
@@ -118,25 +119,6 @@ export function CampusUI(props: CampusUIProps) {
               ✏️ 编辑中
             </button>
           )}
-          {isTouchDevice && (
-            <button
-              type="button"
-              aria-pressed={joystickVisible}
-              onClick={() => setJoystickVisible((v) => !v)}
-              style={{
-                background: joystickVisible ? "rgba(74,144,217,0.85)" : "rgba(0,0,0,0.55)",
-                color: "white",
-                border: "none",
-                borderRadius: 20,
-                padding: "8px 14px",
-                fontSize: 14,
-                minHeight: 36,
-                cursor: "pointer",
-              }}
-            >
-              {joystickVisible ? "隐藏摇杆" : "🕹 摇杆"}
-            </button>
-          )}
           <button
             onClick={onExit}
             style={{
@@ -161,7 +143,7 @@ export function CampusUI(props: CampusUIProps) {
         </div>
       </div>
 
-      {isTouchDevice && <MobileJoystick visible={joystickVisible} />}
+      {isTouchDevice && <MobileJoystick visible={true} />}
 
       {/* 导航搜索 */}
       <NavigateInput
