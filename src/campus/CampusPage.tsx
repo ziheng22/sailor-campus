@@ -375,24 +375,6 @@ export function CampusPage({ onExit }: CampusPageProps) {
       const tag = (e.target as HTMLElement | null)?.tagName
       if (tag === "INPUT" || tag === "TEXTAREA") return
 
-      if (e.code === "KeyC" && !e.ctrlKey && !e.metaKey) {
-        setColliderDebug((v) => {
-          const next = !v
-          setCampusColliderDebugEnabled(next)
-          if (!next) {
-            setColliderEditMode(false)
-            setPlaceNewMode(false)
-          }
-          return next
-        })
-        return
-      }
-
-      if (e.code === "KeyT" && !e.ctrlKey && !e.metaKey) {
-        setRoadDebug((v) => !v)
-        return
-      }
-
       if (e.code === "KeyM" && !e.ctrlKey && !e.metaKey) {
         setNameDebug((v) => {
           const next = !v
@@ -401,126 +383,13 @@ export function CampusPage({ onExit }: CampusPageProps) {
         })
         return
       }
-
-      if (!colliderEditMode && !roadDebug) {
-        if (e.code === "KeyE" && colliderDebug) {
-          toggleColliderEditMode()
-        }
-        return
-      }
-
-      // ---- collider edit shortcuts ----
-      if (colliderEditMode) {
-        if (e.code === "KeyE") {
-          setColliderEditMode(false)
-          setPlaceNewMode(false)
-          return
-        }
-        if (e.code === "Escape") {
-          if (placeNewMode) {
-            setPlaceNewMode(false)
-            showToast("已取消放置")
-          } else if (addPointMode) {
-            setAddPointMode(false)
-            showToast("已退出加点模式")
-          } else if (selectedVertexIndex !== null) {
-            setSelectedVertexIndex(null)
-          } else {
-            setSelectedColliderId(null)
-          }
-          return
-        }
-        if (e.code === "KeyG") {
-          setTransformMode("translate")
-          setPlaceNewMode(false)
-          return
-        }
-        if (e.code === "KeyS" && !e.ctrlKey && !e.metaKey) {
-          setTransformMode("corners")
-          setPlaceNewMode(false)
-          return
-        }
-        if (e.code === "KeyA" && !e.ctrlKey && !e.metaKey) {
-          setAddPointMode((v) => !v)
-          if (!addPointMode) showToast("加点模式：点击边或区域添加角点")
-          return
-        }
-        if (e.code === "KeyN") {
-          handleStartPlaceNew()
-          return
-        }
-        if (e.code === "KeyP" && e.shiftKey) {
-          handleNewAtPlayer()
-          return
-        }
-        if (e.code === "Insert" || (e.code === "Equal" && e.shiftKey)) {
-          handleAddVertex()
-          return
-        }
-        if (e.code === "Delete" || e.code === "Backspace") {
-          e.preventDefault()
-          if (selectedVertexIndex !== null) handleRemoveVertex()
-          else handleDeleteCollider()
-        }
-        return
-      }
-
-      // ---- road debug shortcuts ----
-      if (roadDebug) {
-        if (e.code === "Escape") {
-          if (roadPlaceNewMode) {
-            setRoadPlaceNewMode(false)
-            showToast("已取消放置道路")
-          } else if (roadAddPointMode) {
-            setRoadAddPointMode(false)
-            showToast("已退出加点模式")
-          } else if (selectedRoadVertexIndex !== null) {
-            setSelectedRoadVertexIndex(null)
-          } else {
-            setSelectedRoadId(null)
-          }
-          return
-        }
-        if (e.code === "KeyA" && !e.ctrlKey && !e.metaKey) {
-          setRoadAddPointMode((v) => !v)
-          setRoadPlaceNewMode(false)
-          if (!roadAddPointMode) showToast("加点模式：点击边添加角点")
-          return
-        }
-        if (e.code === "KeyN") {
-          handleRoadStartPlaceNew()
-          return
-        }
-        if (e.code === "Delete" || e.code === "Backspace") {
-          e.preventDefault()
-          if (selectedRoadVertexIndex !== null) handleDeleteRoadVertex()
-          else handleDeleteRoad()
-        }
-        return
-      }
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [
-    colliderEditMode,
-    colliderDebug,
-    placeNewMode,
-    addPointMode,
-    selectedVertexIndex,
-    toggleColliderEditMode,
-    handleStartPlaceNew,
-    handleNewAtPlayer,
     handleDeleteCollider,
     handleAddVertex,
     handleRemoveVertex,
-    showToast,
-    roadDebug,
-    roadPlaceNewMode,
-    roadAddPointMode,
-    selectedRoadVertexIndex,
-    handleRoadStartPlaceNew,
-    handleDeleteRoadVertex,
-    handleDeleteRoad,
   ])
 
   return (
@@ -548,38 +417,6 @@ export function CampusPage({ onExit }: CampusPageProps) {
       <CampusScene
         navigateTarget={navigateTarget}
         onBuildingClick={handleBuildingClick}
-        colliderDebug={colliderDebug}
-        colliderEditMode={colliderEditMode}
-        onAirWallReport={handleAirWallReport}
-        overrides={overrides}
-        onOverridesChange={setOverrides}
-        selectedColliderId={selectedColliderId}
-        onSelectCollider={(id) => {
-          setSelectedColliderId(id)
-          setSelectedVertexIndex(null)
-        }}
-        selectedVertexIndex={selectedVertexIndex}
-        onSelectVertex={setSelectedVertexIndex}
-        addPointMode={addPointMode}
-        transformMode={transformMode}
-        newColliderCenterRef={newColliderCenterRef}
-        placeNewMode={placeNewMode}
-        onPlaceNewCollider={handlePlaceNewCollider}
-        onEditorEntriesChange={handleEditorEntriesChange}
-        customColliderIds={customColliderIds}
-        roadDebug={roadDebug}
-        roadDefs={roadOverrides.roads}
-        selectedRoadId={selectedRoadId}
-        selectedRoadVertexIndex={selectedRoadVertexIndex}
-        onSelectRoad={(id) => {
-          setSelectedRoadId(id)
-          setSelectedRoadVertexIndex(null)
-        }}
-        onSelectRoadVertex={setSelectedRoadVertexIndex}
-        onRoadPolygonChange={handleRoadPolygonChange}
-        roadAddPointMode={roadAddPointMode}
-        roadPlaceNewMode={roadPlaceNewMode}
-        onPlaceNewRoad={handlePlaceNewRoad}
       />
       </div>
       <CampusUI
@@ -591,141 +428,9 @@ export function CampusPage({ onExit }: CampusPageProps) {
         onExit={onExit}
         displayMode={displayMode}
         onToggleFullscreen={toggleFullscreen}
-        colliderDebug={colliderDebug}
-        airWallCount={airWallCount}
-        onToggleColliderDebug={toggleColliderDebug}
-        colliderEditMode={colliderEditMode}
-        onToggleColliderEdit={toggleColliderEditMode}
-        onNewCollider={handleStartPlaceNew}
-        onNewColliderAtPlayer={handleNewAtPlayer}
-        onDeleteCollider={handleDeleteCollider}
-        canDeleteCollider={!!selectedColliderId}
         nameDebug={nameDebug}
         onToggleNameDebug={toggleNameDebug}
-        roadDebug={roadDebug}
-        onToggleRoadDebug={toggleRoadDebug}
       />
-      {roadDebug && (
-        <div
-          data-campus-ui
-          style={{
-            position: "fixed",
-            bottom: 14,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 22,
-            background: "rgba(0,0,0,0.85)",
-            color: "#fff",
-            padding: "8px 18px",
-            borderRadius: 20,
-            fontSize: 12,
-            display: "flex",
-            gap: 12,
-            alignItems: "center",
-            flexWrap: "wrap",
-            justifyContent: "center",
-          }}
-        >
-          {selectedRoad ? (
-            <>
-              <span>{selectedRoad.name} · {selectedRoad.polygon.length}点</span>
-              <button
-                onClick={handleRoadAddPointToggle}
-                style={{
-                  background: roadAddPointMode ? "#ffcc00" : "rgba(255,255,255,0.15)",
-                  color: roadAddPointMode ? "#111" : "#fff",
-                  border: "none", borderRadius: 12, padding: "4px 10px", fontSize: 11, cursor: "pointer",
-                }}
-              >
-                ＋ 加点
-              </button>
-              <button
-                onClick={handleDeleteRoadVertex}
-                disabled={selectedRoadVertexIndex === null}
-                style={{
-                  background: selectedRoadVertexIndex !== null ? "rgba(200,60,60,0.85)" : "rgba(255,255,255,0.1)",
-                  color: selectedRoadVertexIndex !== null ? "#fff" : "#888",
-                  border: "none", borderRadius: 12, padding: "4px 10px", fontSize: 11,
-                  cursor: selectedRoadVertexIndex !== null ? "pointer" : "not-allowed",
-                }}
-              >
-                删除点
-              </button>
-              <button
-                onClick={handleDeleteRoad}
-                disabled={!selectedRoadId}
-                style={{
-                  background: selectedRoadId ? "rgba(180,40,40,0.85)" : "rgba(255,255,255,0.1)",
-                  color: selectedRoadId ? "#fff" : "#888",
-                  border: "none", borderRadius: 12, padding: "4px 10px", fontSize: 11,
-                  cursor: selectedRoadId ? "pointer" : "not-allowed",
-                }}
-              >
-                删除道路
-              </button>
-            </>
-          ) : (
-            <span style={{ opacity: 0.7 }}>点击选中道路进行编辑</span>
-          )}
-          <button
-            onClick={handleRoadStartPlaceNew}
-            style={{
-              background: roadPlaceNewMode ? "#ffcc00" : "rgba(0,200,100,0.8)",
-              color: roadPlaceNewMode ? "#111" : "#fff",
-              border: "none", borderRadius: 12, padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600,
-            }}
-          >
-            {roadPlaceNewMode ? "点击地面放置..." : "＋ 新建道路"}
-          </button>
-        </div>
-      )}
-      {colliderEditMode && (
-        <ColliderEditorPanel
-          selectedEntry={selectedEntry}
-          transformMode={transformMode}
-          placeNewMode={placeNewMode}
-          onTransformModeChange={setTransformMode}
-          onStartPlaceNew={handleStartPlaceNew}
-          onNewAtPlayer={handleNewAtPlayer}
-          onCancelPlaceNew={() => setPlaceNewMode(false)}
-          onDelete={handleDeleteCollider}
-          onAddVertex={handleAddVertex}
-          onRemoveVertex={handleRemoveVertex}
-          addPointMode={addPointMode}
-          onToggleAddPointMode={() => setAddPointMode((v) => !v)}
-          selectedVertexIndex={selectedVertexIndex}
-          vertexCount={selectedPolygon?.length ?? 0}
-          onSave={() => {
-            saveColliderOverrides(overrides)
-            showToast("已保存到浏览器")
-          }}
-          onExportJson={handleExportJson}
-          onClear={handleClearOverrides}
-          patchCount={patchCount}
-          addedCount={addedCount}
-        />
-      )}
-      {editorToast && (
-        <div
-          data-campus-ui
-          style={{
-            position: "fixed",
-            top: 56,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 25,
-            background: "rgba(0,0,0,0.88)",
-            color: "#fff",
-            padding: "10px 18px",
-            borderRadius: 8,
-            fontSize: 13,
-            pointerEvents: "none",
-            border: "1px solid rgba(255,238,0,0.5)",
-          }}
-        >
-          {editorToast}
-        </div>
-      )}
     </div>
   )
 }

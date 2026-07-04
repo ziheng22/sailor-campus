@@ -1,14 +1,13 @@
 import bundledNames from "./campusNameOverrides.raw.json"
 import bundledInfos from "./campusInfoOverrides.raw.json"
 
-/** 开发模式命名调试：URL ?nameDebug=1 或 localStorage campusNameDebug=1 */
+/** 管理员命名调试：URL ?admin=1 或 localStorage campusAdmin=1 */
 export function isCampusNameDebugEnabled(): boolean {
   if (typeof window === "undefined") return false
   try {
     const params = new URLSearchParams(window.location.search)
-    if (params.get("nameDebug") === "1") return true
-    if (params.get("nameDebug") === "0") return false
-    if (window.localStorage.getItem("campusNameDebug") === "1") return true
+    if (params.get("admin") === "1") return true
+    if (window.localStorage.getItem("campusAdmin") === "1") return true
   } catch {
     /* ignore */
   }
@@ -17,7 +16,7 @@ export function isCampusNameDebugEnabled(): boolean {
 
 export function setCampusNameDebugEnabled(on: boolean): void {
   try {
-    window.localStorage.setItem("campusNameDebug", on ? "1" : "0")
+    window.localStorage.setItem("campusAdmin", on ? "1" : "0")
   } catch {
     /* ignore */
   }
